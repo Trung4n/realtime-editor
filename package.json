@@ -4,7 +4,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
     "start": "node --watch src/server.js"
   },
   "keywords": [
@@ -21,10 +21,17 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express-rate-limit": "^8.0.1",
+    "express-validator": "^7.2.1",
     "helmet": "^8.1.0",
     "http-errors": "^2.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.17.1",
     "morgan": "^1.10.1"
+  },
+  "devDependencies": {
+    "jest": "^30.0.5",
+    "jest-environment-node": "^30.0.5",
+    "mongodb-memory-server": "^10.2.0",
+    "supertest": "^7.1.4"
   }
 }
