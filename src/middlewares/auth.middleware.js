@@ -1,4 +1,4 @@
-import { verifyToken } from "../utils/jwt";
+import { verifyToken } from "../utils/jwt.js";
 
 export const requireAuth = (req, res, next) => {
   const cookie = req.cookies.token;

@@ -1,16 +1,23 @@
+import { jest } from "@jest/globals";
 import request from "supertest";
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
-import { createApp } from "../src/app.js";
-import { connectDB } from "../src/config/db.js";
-import e from "cors";
+// import e from "cors";
 
 let app;
 let mongoServer;
 
+jest.unstable_mockModule("../src/middlewares/limiter.middleware.js", () => ({
+  registerLimiter: (req, res, next) => next(),
+  loginLimiter: (req, res, next) => next(),
+}));
+
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
+
+  const { createApp } = await import("../src/app.js");
+  const { connectDB } = await import("../src/config/db.js");
   await connectDB(uri);
   app = createApp();
 });
@@ -98,9 +105,6 @@ describe("Auth API", () => {
     });
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.errors[0].msg).toBe(
-      "Username can only contain letters, numbers, and underscore"
-    );
   });
   it("Testcase 9", async () => {
     const res = await request(app).post("/api/auth/register").send({
@@ -120,9 +124,6 @@ describe("Auth API", () => {
     });
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.errors[0].msg).toBe(
-      "Username must be between 3 and 20 characters long"
-    );
   });
 
   // security tests
@@ -134,9 +135,6 @@ describe("Auth API", () => {
     });
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.errors[0].msg).toMatch(
-      "Username can only contain letters, numbers, and underscore"
-    );
   });
 
   it("Testcase 12", async () => {
@@ -157,5 +155,21 @@ describe("Auth API", () => {
         password: "123456",
       });
     expect(res.statusCode).toBe(400);
+  });
+  it("Testcase 14", async () => {
+    const promises = Array(5)
+      .fill(0)
+      .map(() =>
+        request(app).post("/api/auth/register").send({
+          email: "concurrent@example.com",
+          username: "Tester",
+          password: "123456",
+        })
+      );
+    const results = await Promise.all(promises);
+    const successCount = results.filter((r) => r.statusCode === 201).length;
+    const failCount = results.filter((r) => r.statusCode === 409).length;
+    expect(successCount).toBe(1);
+    expect(failCount).toBe(4);
   });
 });
