@@ -40,4 +40,9 @@ export const docService = {
       $or: [{ owner: userId }, { collaborators: userId }],
     }).sort({ updatedAt: -1 });
   },
+  async getContent(docId) {
+    const doc = await Document.findById(docId);
+    if (!doc) throw new AppError("Document not found", 404);
+    return doc.content;
+  },
 };
