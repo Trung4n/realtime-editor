@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-// import helmet from "helmet";
+import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 
@@ -22,7 +22,7 @@ const __dirname = dirname(__filename);
 export const createApp = () => {
   const app = express();
 
-  // app.use(helmet()); // Off for test
+  app.use(helmet()); // Off for test
   app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
   app.use(express.json({ limit: "1mb" }));
   app.use(morgan("dev"));
@@ -35,15 +35,15 @@ export const createApp = () => {
   // });
   // app.use(globalLimiter);
 
+  app.use(express.static(path.join(__dirname, env.FRONTEND_DIST_PATH)));
+
+  app.get(/^\/(?!api).*/, (req, res) => {
+    res.sendFile(path.join(__dirname, `${env.FRONTEND_DIST_PATH}/index.html`));
+  });
+
   app.use("/api/users", userRoutes);
   app.use("/api/auth", authRoutes);
   app.use("/api/docs", docRoutes);
-
-  app.use(express.static(path.join(__dirname, "../../frontend/dist")));
-
-  app.get(/^\/(?!api).*/, (req, res) => {
-    res.sendFile(path.join(__dirname, "../../frontend/dist/index.html"));
-  });
 
   app.use((_req, _res, next) => next(createError(404, "Not Found")));
 

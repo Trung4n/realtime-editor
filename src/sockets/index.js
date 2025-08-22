@@ -7,14 +7,18 @@ import { AppError } from "../utils/appError.js";
 
 export const initSocket = (httpServer) => {
   const io = new Server(httpServer, {
-    cors: { origin: env.CORS_ORIGIN, methods: ["GET", "POST"] },
+    cors: {
+      origin: env.CORS_ORIGIN,
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
   });
 
   // Auth handshake
   io.use((socket, next) => {
     const cookies = cookie.parse(socket.handshake.headers.cookie || "");
     const token = cookies.token;
-    const payload = token ? verifyToken(token) : null;
+    const payload = verifyToken(token);
     if (!payload) return next(new AppError(401, "Unauthorized"));
     socket.user = payload; // { sub, email }
     next();

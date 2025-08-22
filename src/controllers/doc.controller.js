@@ -2,10 +2,9 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { docService } from "../services/doc.service.js";
 
 export const createDoc = asyncHandler(async (req, res) => {
-  const { title, content } = req.body;
+  const { title } = req.body;
   const doc = await docService.create({
     title,
-    content,
     ownerId: req.user.sub,
   });
   res.status(201).json(doc);
